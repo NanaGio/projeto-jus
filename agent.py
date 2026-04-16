@@ -1,25 +1,35 @@
 import json
 import re
-from tools.handlers import executar_tool
-
-def agente_ON(mensagem: str, historico: list = None) -> dict:
+from tools import calcular_prazo
+#MUDAR ESSA FILE NA VERSÃO AGENTE
+def agente_ON(mensagem_user: str, historico: list = None) -> dict:
     if historico is None:
         historico = []
 
-    if "processo" in mensagem.lower():
-        # Extrai o primeiro número encontrado na mensagem do usuário
-        match = re.search(r'\d+', mensagem)
-        query_id = match.group() if match else ""
-        
-        if query_id:
-            resultado = executar_tool("buscar_processo", {"query": query_id})
-            resposta = f"Processo: {json.dumps(resultado, ensure_ascii=False)}"
-    else: 
-        resposta = "Por favor, informe o ID ou número do processo."
+    resposta = ""
+
+    try:
+        match mensagem_user.lower():
+            case msg if "prazo" in msg:
+                datas = re.findall(r'\d{2}/\d{2}/\d{4}', mensagem_user)
+                if len(datas) >= 2:
+                    resultado = calcular_prazo("calculo_prazo_intimacao", {"data_inicio": datas[0], "data_limite": datas[1]})
+                    resposta = resultado.get("prazo_calculado", resultado.get("erro"))
+                else:
+                    resposta = "Por favor, forneça a data de início e a data limite no formato DD/MM/YYYY."
+
+                #colocar elaborar defesa depois aqui
+
+            case _:
+                resposta = "Ferramenta não encontrada."
+
+    except Exception as E:
+        print(f"ERRO no agente: {E}") 
+    
     
     historico = historico + [
-        {"role": "user", "content": mensagem},
-        {"role": "assistant", "content": resposta}
+        {"role": "user", "content": mensagem_user},
+        {"role": "agente", "content": resposta}
     ]
 
     return {"Resposta": resposta, "historico": historico}
