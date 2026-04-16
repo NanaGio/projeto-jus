@@ -1,0 +1,12 @@
+# Frameworks e Bibliotecas Externas (necessitam de instalação via pip)
+fastapi
+pydantic
+python-dotenv
+workalendar
+slowapi
+
+# Bibliotecas Padrão do Python (Built-ins, não precisam de instalação)
+json
+re
+datetime
+os
